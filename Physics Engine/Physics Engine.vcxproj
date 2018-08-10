@@ -152,19 +152,32 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ForceGenerator.cpp" />
+    <ClCompile Include="Links.cpp" />
+    <ClCompile Include="m3.cpp" />
+    <ClCompile Include="m4.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Maths.cpp" />
     <ClCompile Include="Particle.cpp" />
+    <ClCompile Include="ParticleWorld.cpp" />
     <ClCompile Include="RenderModuleStubb.cpp" />
+    <ClCompile Include="RigidBody.cpp" />
     <ClCompile Include="v3.cpp" />
+    <ClCompile Include="v4.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="ForceGenerator.h" />
+    <ClInclude Include="Links.h" />
+    <ClInclude Include="m3.h" />
+    <ClInclude Include="m4.h" />
     <ClInclude Include="Maths.h" />
     <ClInclude Include="Particle.h" />
+    <ClInclude Include="ParticleCollision.h" />
+    <ClInclude Include="ParticleWorld.h" />
     <ClInclude Include="RenderModuleStubb.h" />
+    <ClInclude Include="RigidBody.h" />
     <ClInclude Include="v3.h" />
+    <ClInclude Include="v4.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
