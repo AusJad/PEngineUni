@@ -39,10 +39,8 @@ namespace pys {
 		return this->x * rhs.x + this->y * rhs.y + this->z * rhs.z;
 	}
 
-	v3 v3::dot(const v3 & rhs) const {
-		return v3(this->y * rhs.z - this->z * rhs.y,
-			this->z * rhs.x - this->x * rhs.z,
-			this->x * rhs.y - this->y * rhs.x);
+	double v3::dot(const v3 &rhs) const {
+		return this->x * rhs.x + this->y * rhs.y + this->z * rhs.z;
 	}
 
 	const v3 & v3::operator *= (const v3 & rhs) {
@@ -139,5 +137,15 @@ namespace pys {
 
 	v3 v3::operator - (const double rhs) const {
 		return v3(this->x - rhs, this->y - rhs, this->z - rhs);
+	}
+
+	double v3::squareMag() const
+	{
+		return x * x + y * y + z * z;
+	}
+
+	double v3::magnitude() const
+	{
+		return sqrt(x * x + y * y + z * z);
 	}
 }

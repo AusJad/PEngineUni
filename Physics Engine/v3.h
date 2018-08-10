@@ -15,7 +15,9 @@ namespace pys {
 			double lenSqr() const;
 			void normalise();
 			double sclrprd(const v3 & rhs) const;
-			v3 dot(const v3 & rhs) const;
+			double dot(const v3 & rhs) const;
+			double squareMag() const;
+			double magnitude() const;
 
 			const v3 & operator *= (const v3 & rhs);
 			const v3 & operator /= (const v3 & rhs);
