@@ -4,6 +4,7 @@
 #include "RenderModuleStubb.h"
 #include "camera.h"
 #include "Particle.h"
+#include "Collision.h"
 
 //Basic engine setup
 #if true
@@ -29,13 +30,43 @@ int main()
 	glfwSetKeyCallback(RNDR.getWindow(), keyCallback);
 	glfwSetCursorPosCallback(RNDR.getWindow(), mouseCallback);
 
+	// --------------------------------------------------------------------------------------
+	OBB obb(vec3(1, 1, 1), 5, 5, 5, physVar(1, 0, 0));
+	OBB obb2(vec3(50, 1, 1), 5, 5, 5, physVar(-1, 0, 0));
+	collisionData obbobb2;
+
+	// While collision and render use different vector classes
+	std::vector<vec3> pos = obb.vertices;
+	std::vector<vec3> pos2 = obb2.vertices;
+	// ---------------------------------------------------------------------------------------
+
 	while (true) {
 		Cam.update(ttime);
 
 		RNDR.startRenderCycle();
 		
 		//Draw Suff here!!!!
-		RNDR.DrawQuad(point(-1, 1), point(1, -1), 4);
+		//RNDR.DrawQuad(point(-1, 1), point(1, -1), 4);
+
+		// --------------------------------------------------------------------------
+		RNDR.DrawQuad(pos, vec3(0, 0, 0));
+		RNDR.DrawQuad(pos2, vec3(0, 0, 0));
+
+		// crude collision reaction
+		if (obb.OBBOBB(obb2, &obbobb2))
+		{
+			physVar tmp = obb.phys;
+			obb.phys = obb2.phys;
+			obb2.phys = tmp;
+
+			std::cout << "Collided: " << obbobb2.contactPoint.x() << "," << obbobb2.contactPoint.y() << "," << obbobb2.contactPoint.z() << std::endl; // Testing
+		}
+		// update colliders and quads
+		obb.update();
+		obb2.update();
+		pos = obb.vertices;
+		pos2 = obb2.vertices;
+		// --------------------------------------------------------------------------
 
 		Cam.render(RNDR);
 		RNDR.endRenderCycle();

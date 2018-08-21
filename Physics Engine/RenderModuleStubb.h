@@ -4,9 +4,9 @@
 #define GLFW_INCLUDE_GLU 
 #define GLFW_EXPOSE_NATIVE_WGL
 #define GLFW_EXPOSE_NATIVE_WIN32
-#include "gl/glew.h"
-#include "glfw/glfw3.h"
-#include "GLFW/glfw3native.h"
+#include "ThirdParty/include/gl/glew.h"
+#include "ThirdParty/include/glfw/glfw3.h"
+#include "ThirdParty/include/glfw/glfw3native.h"
 #include <vector>
 #include <iostream>
 #include "Maths.h"
@@ -90,6 +90,9 @@ public:
 	* @param trans - The translation matrix.
 	*/
 	void DrawQuad(vec3 tl, float widthx, float widthz, float height, vec3 trans);
+
+	// MM - For testing collider boxes.
+	void DrawQuad(std::vector<vec3> vertices, vec3 trans);
 
 	/**
 	* @brief Store the texture.

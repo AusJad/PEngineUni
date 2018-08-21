@@ -1,37 +1,71 @@
 #pragma once
 
-#include "v3.h"
+#include "Maths.h"
 #include <vector>
 
-using namespace pys;
-
-struct OBB
+// Note problem here as nothing links to the two collider objects.
+struct collisionData
 {
-	std::vector<v3> vertices, normals;
-	v3 max, min, CoM;
+	vec3 contactPoint;
+	bool collided;
+
+	collisionData()
+	{
+		contactPoint = vec3(0, 0, 0);
+		collided = false;
+	}
+};
+
+struct physVar
+{
+	vec3 velo;
+
+	physVar()
+	{
+		velo.sx(0);
+		velo.sy(0);
+		velo.sz(0);
+	}
+
+	physVar(float x, float y, float z)
+	{
+		velo.sx(x);
+		velo.sy(y);
+		velo.sz(z);
+	}
+};
+
+class OBB
+{
+public:
+	OBB();
+	OBB(vec3 position, double width, float height, float depth, physVar p);
+	OBB(vec3 position, float width, float height, float depth);
+
+	std::vector<vec3> vertices, normals;
+	vec3 max, min, CoM; // Using its own coord system.
+	vec3 pos; // Using world coord system.
+	// may need some conversion variables to move from personal coord system to world coord system.
+
+	physVar phys; // Temp.
+
+	void update();
+
+	bool OBBOBB(const OBB &s, collisionData *data);
 };
 
 class sphere
 {
 public:
-	v3 pos;
-	double rad;
+	sphere();
+	sphere(vec3 p, double r, physVar ph);
+
+	vec3 pos;
+	float rad;
+
+	physVar phys; // Temp.
 
 	void update();
+
+	bool sphereSphere(const sphere &s, collisionData *data);
 };
-
-struct collisionData
-{
-	v3 contactPoint;
-	bool collided = false;
-};
-
-
-class Collision
-{
-public:
-	static bool sphereSphere(const sphere &s1, const sphere &s2, collisionData *data);
-
-	bool OBBOBB(const OBB &s1, const OBB &s2, collisionData *data);
-};
-

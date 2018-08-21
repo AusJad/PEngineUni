@@ -1,9 +1,9 @@
 #pragma once
 
-#include "glm/glm.hpp"
-#include "glm/gtx/transform.hpp"
-#include "glm/ext.hpp"
-#include "glm/gtc/type_ptr.hpp"
+#include "ThirdParty/include/glm/glm.hpp"
+#include "ThirdParty/include/glm/gtx/transform.hpp"
+#include "ThirdParty/include/glm/ext.hpp"
+#include "ThirdParty/include/glm/gtc/type_ptr.hpp"
 
 
 class vec4{
@@ -314,8 +314,7 @@ public:
 
 	}
 
-
-	float vec3::dot(const vec3 & v)
+	float vec3::dot(const vec3 & v) const
 	{
 		return glm::dot(vector, v.getVec());
 	}
@@ -440,6 +439,11 @@ public:
 
 	float vec3::getLength() {
 		return (float)vector.length();
+	}
+
+	float vec3::magnitude() const
+	{
+		return sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
 	}
 };
 

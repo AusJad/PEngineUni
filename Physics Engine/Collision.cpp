@@ -2,25 +2,119 @@
 
 void sphere::update()
 {
-	// Physics update happens here
+	pos += phys.velo;
 }
 
-bool Collision::sphereSphere(const sphere &s1, const sphere &s2, collisionData *data)
+sphere::sphere()
+{
+	rad = 0;
+	pos = vec3(0, 0, 0);
+}
+
+sphere::sphere(vec3 p, double r, physVar ph)
+{
+	pos = p;
+	rad = r;
+	phys = ph;
+}
+
+OBB::OBB()
+{
+	pos = vec3(0, 0, 0);
+	CoM = vec3(0, 0, 0);
+	min = vec3(0, 0, 0);
+	max = vec3(0, 0, 0);
+	vertices.clear();
+	normals.clear();
+}
+
+// For now OBB is created with position coords in real world being the same coord that the CoM is at.
+// This can cause issues if the CoM is off to one side meaning that the box will be as big as greatest distance from CoM to each edge.
+OBB::OBB(vec3 position, double width, float height, float depth, physVar p)
+{
+	pos = position;
+	CoM = position;
+	phys = p;
+
+	vertices.clear();
+	vertices.push_back(vec3(pos.x() - width / 2, pos.y() + height / 2, pos.z() + depth / 2)); // Front top left
+	vertices.push_back(vec3(pos.x() - width / 2, pos.y() - height / 2, pos.z() + depth / 2)); // Front bottom left
+	vertices.push_back(vec3(pos.x() + width / 2, pos.y() - height / 2, pos.z() + depth / 2)); // Front bottom right
+	vertices.push_back(vec3(pos.x() + width / 2, pos.y() + height / 2, pos.z() + depth / 2)); // Front top right
+
+	vertices.push_back(vec3(pos.x() - width / 2, pos.y() + height / 2, pos.z() - depth / 2)); // Back top left
+	vertices.push_back(vec3(pos.x() - width / 2, pos.y() - height / 2, pos.z() - depth / 2)); // Back bottom left
+	vertices.push_back(vec3(pos.x() + width / 2, pos.y() - height / 2, pos.z() - depth / 2)); // Back bottom right
+	vertices.push_back(vec3(pos.x() + width / 2, pos.y() + height / 2, pos.z() - depth / 2)); // Back top right
+
+	vec3 temp;
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		temp = vertices[i];
+		temp.normailse();
+		normals.push_back(temp);
+	}
+
+	// TMP SOLUTION
+	min = vec3(0, 0, 0);
+	max = vec3(0, 0, 0);
+}
+
+OBB::OBB(vec3 position, float width, float height, float depth)
+{
+	pos = position;
+	CoM = position;
+
+	vertices.clear();
+	vertices.push_back(vec3(pos.x() - width / 2, pos.y() - height / 2, pos.z() + depth / 2)); // Front bottom left
+	vertices.push_back(vec3(pos.x() - width / 2, pos.y() + height / 2, pos.z() + depth / 2)); // Front top left
+	vertices.push_back(vec3(pos.x() + width / 2, pos.y() + height / 2, pos.z() + depth / 2)); // Front top right
+	vertices.push_back(vec3(pos.x() + width / 2, pos.y() - height / 2, pos.z() + depth / 2)); // Front bottom right
+	vertices.push_back(vec3(pos.x() - width / 2, pos.y() - height / 2, pos.z() - depth / 2)); // Back bottom left
+	vertices.push_back(vec3(pos.x() - width / 2, pos.y() + height / 2, pos.z() - depth / 2)); // Back top left
+	vertices.push_back(vec3(pos.x() + width / 2, pos.y() + height / 2, pos.z() - depth / 2)); // Back top right
+	vertices.push_back(vec3(pos.x() + width / 2, pos.y() - height / 2, pos.z() - depth / 2)); // Back bottom right
+
+	vec3 temp;
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		temp = vertices[i];
+		temp.normailse();
+		normals.push_back(temp);
+	}
+}
+
+void OBB::update()
+{
+	pos += phys.velo;
+	CoM += phys.velo;
+
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		vertices[i] += phys.velo;
+	}
+}
+
+bool sphere::sphereSphere(const sphere &s, collisionData *data)
 {
 	if (!data->collided)
 	{
 		sphere nOne, nTwo;
-		nOne = s1;
-		nTwo = s2;
+
+		nOne.pos = pos;
+		nOne.rad = rad;
+		nOne.phys = phys;
+
+		nTwo = s;
 
 		nOne.update();
 		nTwo.update();
 
-		double distance = (nTwo.pos - nOne.pos).magnitude();
+		float distance = (nTwo.pos - nOne.pos).magnitude();
 		if (distance <= nOne.rad + nTwo.rad)
 		{
 			data->collided = true;
-			data->contactPoint = s1.pos - s2.pos;
+			data->contactPoint = pos - s.pos;
 		}
 
 		return false;
@@ -30,51 +124,51 @@ bool Collision::sphereSphere(const sphere &s1, const sphere &s2, collisionData *
 	return true;
 }
 
-bool Collision::OBBOBB(const OBB &s1, const OBB &s2, collisionData *data)
+bool OBB::OBBOBB(const OBB &s, collisionData *data)
 {
-	double dotprod;
-	double s1minn1, s1maxn1, s2minn1, s2maxn1; // Shape 1 min value of normal 1
-	v3 s1minn1c, s1maxn1c, s2minn1c, s2maxn1c; // Shape 1 min value of normal 1 coord
+	float dotprod;
+	float s1minn1, s1maxn1, s2minn1, s2maxn1; // Shape 1 min value of normal 1
+	vec3 s1minn1c, s1maxn1c, s2minn1c, s2maxn1c; // Shape 1 min value of normal 1 coord
 
-	for (int i = 0; i < s1.normals.size(); i++)
+	for (int i = 0; i < normals.size(); i++)
 	{
-		s1minn1 = s1.vertices[0].dot(s1.normals[i]);
-		s1maxn1 = s1.vertices[0].dot(s1.normals[i]);
+		s1minn1 = vertices[0].dot(normals[i]);
+		s1maxn1 = vertices[0].dot(normals[i]);
 
-		for (int j = 1; j < s1.vertices.size(); j++)
+		for (int j = 1; j < vertices.size(); j++)
 		{
-			dotprod = s1.vertices[j].dot(s1.normals[i]);
+			dotprod = vertices[j].dot(normals[i]);
 
 			if (dotprod < s1minn1)
 			{
 				s1minn1 = dotprod;
-				s1minn1c = s1.vertices[j];
+				s1minn1c = vertices[j];
 			}
 
 			if (dotprod > s1maxn1)
 			{
 				s1maxn1 = dotprod;
-				s1maxn1c = s1.vertices[j];
+				s1maxn1c = vertices[j];
 			}
 		}
 
-		s2minn1 = s2.vertices[0].dot(s1.normals[i]);
-		s2maxn1 = s2.vertices[0].dot(s1.normals[i]);
+		s2minn1 = s.vertices[0].dot(normals[i]);
+		s2maxn1 = s.vertices[0].dot(normals[i]);
 
-		for (int j = 1; j < s2.vertices.size(); j++)
+		for (int j = 1; j < s.vertices.size(); j++)
 		{
-			dotprod = s2.vertices[j].dot(s1.normals[i]);
+			dotprod = s.vertices[j].dot(normals[i]);
 
 			if (dotprod < s2minn1)
 			{
 				s2minn1 = dotprod;
-				s2minn1c = s2.vertices[j];
+				s2minn1c = s.vertices[j];
 			}
 
 			if (dotprod > s2maxn1)
 			{
 				s2maxn1 = dotprod;
-				s2maxn1c = s2.vertices[j];
+				s2maxn1c = s.vertices[j];
 			}
 		}
 
@@ -87,49 +181,49 @@ bool Collision::OBBOBB(const OBB &s1, const OBB &s2, collisionData *data)
 	}
 
 	double s1minn2, s1maxn2, s2minn2, s2maxn2;
-	v3 s1minn2c, s1maxn2c, s2minn2c, s2maxn2c;
+	vec3 s1minn2c, s1maxn2c, s2minn2c, s2maxn2c;
 
-	for (int i = 0; i < s2.normals.size(); i++)
+	for (int i = 0; i < s.normals.size(); i++)
 	{
-		s1minn2 = s1.vertices[0].dot(s2.normals[i]);
-		s1minn2c = s1.vertices[0];
-		s1maxn2 = s1.vertices[0].dot(s2.normals[i]);
-		s1maxn2c = s1.vertices[0];
+		s1minn2 = vertices[0].dot(s.normals[i]);
+		s1minn2c = vertices[0];
+		s1maxn2 = vertices[0].dot(s.normals[i]);
+		s1maxn2c = vertices[0];
 
-		for (int j = 1; j < s1.vertices.size(); j++)
+		for (int j = 1; j < vertices.size(); j++)
 		{
-			dotprod = s1.vertices[j].dot(s2.normals[i]);
+			dotprod = vertices[j].dot(s.normals[i]);
 
 			if (dotprod < s1minn2)
 			{
 				s1minn2 = dotprod;
-				s1minn2c = s1.vertices[j];
+				s1minn2c = vertices[j];
 			}
 				
 			if (dotprod > s1maxn2)
 			{
 				s1maxn2 = dotprod;
-				s1maxn2c = s1.vertices[j];
+				s1maxn2c = vertices[j];
 			}
 		}
 
-		s2minn2 = s2.vertices[0].dot(s2.normals[i]);
-		s2maxn2 = s2.vertices[0].dot(s2.normals[i]);
+		s2minn2 = s.vertices[0].dot(s.normals[i]);
+		s2maxn2 = s.vertices[0].dot(s.normals[i]);
 
-		for (int j = 1; j < s2.vertices.size(); j++)
+		for (int j = 1; j < s.vertices.size(); j++)
 		{
-			dotprod = s2.vertices[j].dot(s2.normals[i]);
+			dotprod = s.vertices[j].dot(s.normals[i]);
 
 			if (dotprod < s2minn2)
 			{
 				s2minn2 = dotprod;
-				s2minn2c = s2.vertices[j];
+				s2minn2c = s.vertices[j];
 			}
 
 			if (dotprod > s2maxn2)
 			{
 				s2maxn2 = dotprod;
-				s2maxn2c = s2.vertices[j];
+				s2maxn2c = s.vertices[j];
 			}
 		}
 
