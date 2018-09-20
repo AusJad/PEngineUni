@@ -25,6 +25,35 @@ void mouseCallback(GLFWwindow* window, double x, double y);
 
 #endif
 
+void linearImpulse(phys::Rectangle & ob1, phys::Rectangle & ob2, CollisionManifold& m)
+{
+	float total_inv_mass = ob1.getInvMass() + ob2.getInvMass();
+
+	if (total_inv_mass == 0)
+	{
+		return;
+	}
+
+	physvec3 relativeVelo = ob2.vel - ob1.vel;
+	physvec3 relativeNormal = m.normal;
+	Normalize(relativeNormal);
+
+	if (Dot(relativeVelo, relativeNormal) > 0) // Objects are already moving away from each other
+	{
+		return;
+	}
+
+	float minCOR = fminf(ob1.COR, ob2.COR);
+	float magnitude = 1 / total_inv_mass;
+
+	if (m.contacts.size() > 0.0f && magnitude != 0.0f) // If there is a collision and it has a magnitude
+		magnitude /= (float)m.contacts.size();
+
+	physvec3 impulse = relativeNormal * magnitude;
+	ob1.vel -= impulse * ob1.getInvMass();
+	ob2.vel += impulse * ob2.getInvMass();
+}
+
 void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
 	r1.update(ttime);
 	r2.update(ttime);
@@ -32,6 +61,7 @@ void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
 	if (OBBOBB(r1.getOBB(), r2.getOBB())) {
 		CollisionManifold coll = FindCollisionFeatures(r1.getOBB(), r2.getOBB());
 		if (coll.colliding) {
+			linearImpulse(r1, r2, coll);
 			for(unsigned i = 0; i < coll.contacts.size(); i++) std::cout << coll.contacts.at(i) << std::endl;
 
 			std::cout << coll.depth <<std::endl;
@@ -42,13 +72,13 @@ void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
 
 void init() {
 	rect.orientate(ZRotation3x3(-45));
-	rect.mass = 5;
-	rect2.mass = 5;
-	rect.mass = .5;
-	rect2.mass = .5;
+	rect.mass = 1;
+	rect2.mass = 1;
+	rect.COR = 0.5;
+	rect2.COR = 0.5;
 
 	rect2.vel = physvec3(15, 0, 0);
-	rect.vel = physvec3(15, 0, 0);
+	rect.vel = physvec3(-15, 0, 0);
 }
 
 int main()
