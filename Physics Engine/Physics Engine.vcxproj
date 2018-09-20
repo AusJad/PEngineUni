@@ -159,6 +159,7 @@
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="RenderModuleStubb.cpp" />
+    <ClCompile Include="RigidBody.cpp" />
     <ClCompile Include="v3.cpp" />
     <ClCompile Include="vectors.cpp" />
   </ItemGroup>
@@ -172,6 +173,7 @@
     <ClInclude Include="Particle.h" />
     <ClInclude Include="Rectangle.h" />
     <ClInclude Include="RenderModuleStubb.h" />
+    <ClInclude Include="RigidBody.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="v3.h" />
     <ClInclude Include="vectors.h" />
