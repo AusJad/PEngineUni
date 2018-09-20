@@ -26,8 +26,8 @@ void mouseCallback(GLFWwindow* window, double x, double y);
 #endif
 
 void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
-	r1.update(ttime, vec3(0,0,0));
-	r2.update(ttime, vec3(.5, 0, 0));
+	r1.update(ttime);
+	r2.update(ttime);
 
 	if (OBBOBB(r1.getOBB(), r2.getOBB())) {
 		CollisionManifold coll = FindCollisionFeatures(r1.getOBB(), r2.getOBB());
@@ -42,6 +42,13 @@ void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
 
 void init() {
 	rect.orientate(ZRotation3x3(-45));
+	rect.mass = 5;
+	rect2.mass = 5;
+	rect.mass = .5;
+	rect2.mass = .5;
+
+	rect2.vel = physvec3(15, 0, 0);
+	rect.vel = physvec3(15, 0, 0);
 }
 
 int main()

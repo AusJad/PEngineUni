@@ -6,11 +6,17 @@ namespace phys {
 	{
 		obb.position = physvec3(c.x(), c.y(), c.z());
 		obb.size = physvec3(w, h, t);
-		std::cout << obb.size << std::endl;
+		mass = 5;
+		float COR;
 	}
 
-	void Rectangle::update(float time, vec3 amount) {
-		obb.position += physvec3((amount * time).x(), (amount * time).y(), (amount * time).z());
+	void Rectangle::update(float time) {
+		const float dampening = 0.98f;
+		physvec3 acceleration = forceaccum * getInvMass();
+		vel = vel + acceleration * time;
+		vel *= dampening;
+		
+		obb.position += vel * time;
 	}
 
 	void Rectangle::render() {
@@ -29,18 +35,17 @@ namespace phys {
 		RNDR->DrawRect(vec3(), obb.size.x, obb.size.y, obb.size.z);
 		glPopMatrix();
 	}
-
-	BB Rectangle::getBounds() {
-		BB ret;
-
-		ret.maxx = center.x() + width;
-		ret.minx = center.x() - width;
-		ret.maxy = center.y() + width;
-		ret.miny = center.y() - width;
-		ret.maxz = center.z() + width;
-		ret.minz = center.z() - width;
-
-		return ret;
+	
+	void Rectangle::applyForces() {
+		forceaccum = GRAVITY * mass;
 	}
 
+	void Rectangle::addLinearImpulse(const physvec3 & impulse) {
+		vel = vel + impulse;
+	}
+
+	float Rectangle::getInvMass() {
+		if (mass == 0.0f) return 0;
+		return 1.0f / mass;
+	}
 };

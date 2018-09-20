@@ -4,10 +4,7 @@
 #include "RenderModuleStubb.h"
 #include "Geometry3D.h"
 
-struct BB {
-	float minx, maxx, miny, maxy, minz, maxz;
-};
-
+#define GRAVITY physvec3(0.0f, -9.8f, 0.0f)
 
 namespace phys{
 class Rectangle
@@ -15,11 +12,9 @@ class Rectangle
 public:
 	Rectangle(vec3 c, float w, float h, float t);
 
-	void update(float time, vec3 amount);
+	void update(float time);
 
 	void render();
-
-	BB getBounds();
 
 	const vec3 & getCenter() { return center; };
 
@@ -32,6 +27,16 @@ public:
 	const OBB & getOBB() { return obb; }
 
 	void orientate(const mat3 & toset) { obb.orientation = toset; }
+
+	void applyForces();
+
+	void addLinearImpulse(const physvec3 & impulse);
+
+	float getInvMass();
+
+	physvec3 vel, forceaccum;
+	float mass;
+	float COR;
 
 private:
 	vec3 center;
