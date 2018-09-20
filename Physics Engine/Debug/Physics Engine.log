@@ -1,0 +1,9 @@
+﻿  main.cpp
+c:\users\morgan\documents\visual studio 2015\projects\physics engine\physics engine\particle.h(45): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\morgan\documents\visual studio 2015\projects\physics engine\physics engine\geometry3d.h(360): warning C4091: 'typedef ': ignored on left of 'CollisionManifold' when no variable is declared
+c:\users\morgan\documents\visual studio 2015\projects\physics engine\physics engine\main.cpp(70): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\morgan\documents\visual studio 2015\projects\physics engine\physics engine\main.cpp(131): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+c:\users\morgan\documents\visual studio 2015\projects\physics engine\physics engine\main.cpp(133): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  Physics Engine.vcxproj -> C:\Users\Morgan\Documents\Visual Studio 2015\Projects\Physics Engine\Debug\Physics Engine.exe
+  Physics Engine.vcxproj -> C:\Users\Morgan\Documents\Visual Studio 2015\Projects\Physics Engine\Debug\Physics Engine.pdb (Full PDB)

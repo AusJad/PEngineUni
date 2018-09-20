@@ -11,8 +11,10 @@
 #include <iostream>
 #include "Maths.h"
 
+#include "Singleton.h"
 
 
+#define RNDR Singleton<RenderModuleStubb>::getInstance()
 
 /**
 * @struct
@@ -79,6 +81,8 @@ public:
 	* @param y - The y coord.
 	*/
 	void DrawQuad(point tl, point br, float y);
+
+	void DrawRect(vec3 & center, float w, float h, float t);
 
 	/**
 	* @brief Draw a quad.

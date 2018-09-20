@@ -71,16 +71,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)include;$(ProjectDir)ThirdParty/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)ThirdParty\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)ThirdParty/include;$(ProjectDir)include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)ThirdParty/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)include;$(ProjectDir)ThirdParty/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)ThirdParty\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)ThirdParty/include;$(ProjectDir)include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)ThirdParty/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -152,19 +152,29 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ForceGenerator.cpp" />
+    <ClCompile Include="Geometry3D.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Maths.cpp" />
+    <ClCompile Include="matrices.cpp" />
     <ClCompile Include="Particle.cpp" />
+    <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="RenderModuleStubb.cpp" />
     <ClCompile Include="v3.cpp" />
+    <ClCompile Include="vectors.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
+    <ClInclude Include="Compare.h" />
     <ClInclude Include="ForceGenerator.h" />
+    <ClInclude Include="Geometry3D.h" />
     <ClInclude Include="Maths.h" />
+    <ClInclude Include="matrices.h" />
     <ClInclude Include="Particle.h" />
+    <ClInclude Include="Rectangle.h" />
     <ClInclude Include="RenderModuleStubb.h" />
+    <ClInclude Include="Singleton.h" />
     <ClInclude Include="v3.h" />
+    <ClInclude Include="vectors.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

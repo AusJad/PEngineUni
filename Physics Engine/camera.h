@@ -82,8 +82,8 @@ public:
 		target = vec3();
 	}
 
-	void Camera::render(RenderModuleStubb & RNDR) {
-		RNDR.callLookAt(vec3(pos.x(), pos.y(), pos.z()),
+	void Camera::render() {
+		RNDR->callLookAt(vec3(pos.x(), pos.y(), pos.z()),
 			vec3(pos.x() + GetCamZ().x(), pos.y() + GetCamZ().y(), pos.z() + GetCamZ().z()),
 			vec3(GetCamY().x(), GetCamY().y(), GetCamY().z()));
 	}
