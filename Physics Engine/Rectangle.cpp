@@ -6,17 +6,27 @@ namespace phys {
 	{
 		obb.position = physvec3(c.x(), c.y(), c.z());
 		obb.size = physvec3(w, h, t);
-		mass = 5;
-		float COR;
 	}
 
 	void Rectangle::update(float time) {
 		const float dampening = 0.98f;
 		physvec3 acceleration = forceaccum * getInvMass();
-		vel = vel + acceleration * time;
+		vel += acceleration * time;
 		vel *= dampening;
-		
 		obb.position += vel * time;
+
+		physvec3 angularAcceleration = MultiplyVector(torques, Inverse(intert_tensor));
+		angularvel += angularAcceleration * time;
+		angularvel *= dampening;
+		
+		orientation += angularvel * time;
+		obb.orientation = Rotation3x3(RAD2DEG(orientation.x), RAD2DEG(orientation.y), RAD2DEG(orientation.z));
+	}
+
+	void Rectangle::addRotationalImpulse(physvec3 point, physvec3 impulse) {
+		physvec3 torque = Cross(point - obb.position, impulse);
+		physvec3 angularacel = MultiplyVector(torque, Inverse(intert_tensor));
+		angularvel += angularacel;
 	}
 
 	void Rectangle::render() {
@@ -33,6 +43,7 @@ namespace phys {
 		glRotatef(RAD2DEG(rot.z), 0, 0, 1);
 
 		RNDR->DrawRect(vec3(), obb.size.x, obb.size.y, obb.size.z);
+
 		glPopMatrix();
 	}
 	

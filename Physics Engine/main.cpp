@@ -25,6 +25,53 @@ void mouseCallback(GLFWwindow* window, double x, double y);
 
 #endif
 
+void updateAngularImpulse(phys::Rectangle & r1, phys::Rectangle & r2, CollisionManifold & CM, int c) {
+
+	if (r1.getInvMass() + r2.getInvMass() == 0.0f) {
+		return;
+	}
+
+	physvec3 rc1 = CM.contacts[c] - r1.getOBB().position;
+	physvec3 rc2 = CM.contacts[c] - r2.getOBB().position;
+
+	physmat4 i1 = Inverse(r1.intert_tensor);
+	physmat4 i2 = Inverse(r2.intert_tensor);
+
+	physvec3 relvel = (r2.vel + Cross(r2.angularvel, rc2)) 
+		- (r1.vel + Cross(r1.angularvel, rc1));
+
+	physvec3 relnorm = CM.normal;
+
+	Normalize(relnorm);
+
+	if (Dot(relvel, relnorm) > 0.0f) {
+		return;
+	}
+
+	float e = fminf(r1.COR, r2.COR);
+	float numerator = (-(1.0f + e) * Dot(relvel, relnorm));
+	float d1 = r1.getInvMass() + r2.getInvMass();
+	physvec3 d2 = Cross(MultiplyVector(Cross(rc1, relnorm), i1), rc1);
+	physvec3 d3 = Cross(MultiplyVector(Cross(rc2, relnorm), i2), rc2);
+
+	float denom = d1 + Dot(relnorm, d2 + d3);
+	float j = (denom == 0.0f) ? 0.0f : numerator / denom;
+
+	if (CM.contacts.size() > 0 && j != 0.0f) {
+		j /= (float) CM.contacts.size();
+	}
+
+	physvec3 impulse = relnorm * j;
+
+	std::cout << j << std::endl;
+	r1.vel -= impulse * r1.getInvMass();
+	r2.vel += impulse * r2.getInvMass();
+	r1.angularvel -= MultiplyVector(Cross(rc1, impulse), i1);
+	r2.angularvel += MultiplyVector(Cross(rc2, impulse), i2);
+
+
+}
+
 void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
 	r1.update(ttime);
 	r2.update(ttime);
@@ -32,23 +79,34 @@ void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
 	if (OBBOBB(r1.getOBB(), r2.getOBB())) {
 		CollisionManifold coll = FindCollisionFeatures(r1.getOBB(), r2.getOBB());
 		if (coll.colliding) {
-			for(unsigned i = 0; i < coll.contacts.size(); i++) std::cout << coll.contacts.at(i) << std::endl;
-
-			std::cout << coll.depth <<std::endl;
+			for (unsigned i = 0; i < coll.contacts.size(); i++) 
+				updateAngularImpulse(r1, r2, coll, 0);
 		}
 	}
 	
 }
 
 void init() {
-	rect.orientate(ZRotation3x3(-45));
 	rect.mass = 5;
 	rect2.mass = 5;
-	rect.mass = .5;
-	rect2.mass = .5;
+	rect.COR = .5;
+	rect2.COR = .5;
 
-	rect2.vel = physvec3(15, 0, 0);
-	rect.vel = physvec3(15, 0, 0);
+	rect2.vel = physvec3(5, 0, 0);
+	rect.vel = physvec3(-5, 0, 0);
+
+	float frac = 1 / 12;
+	rect2.intert_tensor._11 = (pow(rect2.getOBB().size.y, 2) + pow(rect2.getOBB().size.z, 2)) * rect2.mass * frac;
+	rect2.intert_tensor._22 = (pow(rect2.getOBB().size.x, 2) + pow(rect2.getOBB().size.z, 2)) * rect2.mass * frac;
+	rect2.intert_tensor._33 = (pow(rect2.getOBB().size.x, 2) + pow(rect2.getOBB().size.y, 2)) * rect2.mass * frac;
+	rect2.intert_tensor._44 = 1.0f;
+
+	rect.intert_tensor._11 = (pow(rect.getOBB().size.y, 2) + pow(rect.getOBB().size.z, 2)) * rect.mass * frac;
+	rect.intert_tensor._22 = (pow(rect.getOBB().size.x, 2) + pow(rect.getOBB().size.z, 2)) * rect.mass * frac;
+	rect.intert_tensor._33 = (pow(rect.getOBB().size.x, 2) + pow(rect.getOBB().size.y, 2)) * rect.mass * frac;
+	rect.intert_tensor._44 = 1.0f;
+
+	rect.orientation = physvec3(DEG2RAD(45), 0, 0);
 }
 
 int main()

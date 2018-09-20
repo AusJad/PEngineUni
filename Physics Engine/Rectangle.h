@@ -32,11 +32,19 @@ public:
 
 	void addLinearImpulse(const physvec3 & impulse);
 
+	void addRotationalImpulse(physvec3 point, physvec3 impulse);
+
 	float getInvMass();
 
 	physvec3 vel, forceaccum;
 	float mass;
 	float COR;
+
+	physvec3 angularvel;
+	physvec3 orientation;
+	physvec3 torques;
+
+	physmat4 intert_tensor;
 
 private:
 	vec3 center;
