@@ -11,9 +11,9 @@
 
 Camera Cam(vec3(-.5, 0, 0));
 
-phys::Rectangle rect(vec3(9, 1, 1), 3, 2, 2);
+phys::Rectangle rect(vec3(20, 1, 1), 3, 2, 2);
 
-phys::Rectangle rect2(vec3(3, 1, 1), 2, 2, 2);
+phys::Rectangle rect2(vec3(-10, 1, 1), 2, 2, 2);
 
 double prevx = -1, prevy = -1;
 
@@ -70,21 +70,142 @@ void updateAngularImpulse(phys::Rectangle & r1, phys::Rectangle & r2, CollisionM
 	r1.angularvel -= MultiplyVector(Cross(rc1, impulse), i1);
 	r2.angularvel += MultiplyVector(Cross(rc2, impulse), i2);
 
+}
+
+float magicEquation(physvec3 obj1LinearVelocity, physvec3 obj2LinearVelocity, physvec3 obj1AngularVelocity, physvec3 obj2AngularVelocity, float obj1Mass, float obj2Mass, physvec3 obj1R, physvec3 obj2R, physmat4 obj1InertiaTensor, physmat4 obj2InertiaTensor, physvec3 collisionVector)
+{
+	if ((1/obj1Mass) + (1/obj2Mass) == 0.0f) {
+		return 0;
 	}
+	physvec3 bottomBit;
+	physvec3 relativeLinearVelocity;
+	relativeLinearVelocity.x = obj1LinearVelocity.x - obj2LinearVelocity.x;
+	relativeLinearVelocity.y = obj1LinearVelocity.y - obj2LinearVelocity.y;
+	relativeLinearVelocity.z = obj1LinearVelocity.z - obj2LinearVelocity.z;
+	physmat4 i1 = Inverse(obj1InertiaTensor);
+	physmat4 i2 = Inverse(obj2InertiaTensor);
+	bottomBit = (MultiplyVector(Transpose(Cross(obj1R, collisionVector)), i1)) * Cross(obj1R, collisionVector) + MultiplyVector(Transpose(Cross(obj2R, collisionVector)), i2) * Cross(obj2R, collisionVector);
+	
+	//inverse mass to every point on vec3
+	float inverseMasses = (1 / obj1Mass) + (1 / obj2Mass);
+	float topBit = (-(1 + 0.5) * Dot(collisionVector, relativeLinearVelocity) + Dot(obj1AngularVelocity, Cross(obj1R, collisionVector)) - (Dot(obj2AngularVelocity, Cross(obj2R, collisionVector))));
 
-	void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
-		r1.update(ttime);
-		r2.update(ttime);
+	bottomBit.x += inverseMasses;
+	bottomBit.y += inverseMasses;
+	bottomBit.z += inverseMasses;
+	topBit /= bottomBit.x;
+	topBit /= bottomBit.y;
+	topBit /= bottomBit.z;
+	topBit *= collisionVector.x;
+	topBit *= collisionVector.y;
+	topBit *= collisionVector.z;
 
-		if (OBBOBB(r1.getOBB(), r2.getOBB())) {
-			CollisionManifold coll = FindCollisionFeatures(r1.getOBB(), r2.getOBB());
-			if (coll.colliding) {
-					for (unsigned i = 0; i < coll.contacts.size(); i++)
-						updateAngularImpulse(r1, r2, coll, 0);
-			}
-		}
+	return topBit;
+}
+
+void updateLinearVelocity(phys::Rectangle & r1, phys::Rectangle & r2, float help)
+{
+
+	r1.vel.x += (help / r1.mass);
+	r1.vel.y += (help / r1.mass);
+	r1.vel.z += (help / r1.mass);
+
+
+	r2.vel.x -= (help / r2.mass);
+	r2.vel.y -= (help / r2.mass);
+	r2.vel.z -= (help / r2.mass);
+}
+
+void updateAngularVelocity(phys::Rectangle & r1, phys::Rectangle & r2, float help, physvec3 collPt)
+{
+	physvec3 normalVector = collPt - r1.getOBB().position;
+	mat3 i1;
+	mat3 i2;
+	i1._11 = r1.intert_tensor._11;
+	i1._12 = r1.intert_tensor._12;
+	i1._13 = r1.intert_tensor._13;
+
+	i1._21 = r1.intert_tensor._21;
+	i1._22 = r1.intert_tensor._22;
+	i1._23 = r1.intert_tensor._23;
+
+	i1._31 = r1.intert_tensor._31;
+	i1._32 = r1.intert_tensor._32;
+	i1._33 = r1.intert_tensor._33;
+
+
+	i2._11 = r2.intert_tensor._11;
+	i2._12 = r2.intert_tensor._12;
+	i2._13 = r2.intert_tensor._13;
+
+	i2._21 = r2.intert_tensor._21;
+	i2._22 = r2.intert_tensor._22;
+	i2._23 = r2.intert_tensor._23;
+
+	i2._31 = r2.intert_tensor._31;
+	i2._32 = r2.intert_tensor._32;
+	i2._33 = r2.intert_tensor._33;
+
+	i1 = Inverse(i1);
+	i2 = Inverse(i2);
+
+
+
+	physvec3 r1stuff = MultiplyVector(i1, Cross(normalVector, collPt));
+	std::cout << "r1stuff: " << r1stuff.x << " y: " << r1stuff.y << " z: " << r1stuff.z << std::endl;
+	std::cout << "r1 angular stuff: " << r1.angularvel.x << " y: " << r1.angularvel.y << " z: " << r1.angularvel.z << std::endl;
+	r1.angularvel.x = r1.angularvel.x + help * r1stuff.x;
+	r1.angularvel.y = r1.angularvel.y + help * r1stuff.y;
+	r1.angularvel.z = r1.angularvel.z + help * r1stuff.z;
+
+	physvec3 r2stuff = MultiplyVector(i2, Cross(normalVector, collPt));
+	r2.angularvel.x = r2.angularvel.x + help * r2stuff.x;
+	r2.angularvel.y = r2.angularvel.y + help * r2stuff.y;
+	r2.angularvel.z = r2.angularvel.z + help * r2stuff.z;
 
 }
+
+
+void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
+	r1.update(ttime);
+	r2.update(ttime);
+
+
+	physvec3 collpt;
+	physvec3 obj1R;
+	physvec3 obj2R;
+	float momentumChange;
+
+	if (OBBOBB(r1.getOBB(), r2.getOBB())) {
+		CollisionManifold coll = FindCollisionFeatures(r1.getOBB(), r2.getOBB());
+		if (coll.colliding) {
+			
+			if (coll.contacts.size() > 1)
+			{
+				for (int i = 0; i < coll.contacts.size() - 1; i++)
+				{
+					collpt += coll.contacts[i];
+				}
+
+				collpt /= coll.contacts.size();
+			}
+			else
+				collpt = coll.contacts[0];
+
+			obj1R = r1.getOBB().position + collpt;
+			obj2R = r2.getOBB().position - collpt;
+
+			momentumChange = magicEquation(r1.vel, r2.vel, r1.angularvel, r2.angularvel, r1.mass, r2.mass, obj1R, obj2R, r1.intert_tensor, r2.intert_tensor, collpt);
+			updateAngularVelocity(r1, r2, momentumChange, collpt);
+			updateLinearVelocity(r1, r2, momentumChange);
+			
+		
+		}
+
+	}
+}
+
+
 
 void init() {
 		rect.mass = 5;
@@ -92,8 +213,8 @@ void init() {
 		rect.COR = .5;
 		rect2.COR = .5;
 
-		rect2.vel = physvec3(5, 0, 0);
-		rect.vel = physvec3(-5, 0, 0);
+		rect2.vel = physvec3(15, 0, 0);
+		rect.vel = physvec3(-15, 5, 0);
 
 		float frac = 1 / 12;
 		rect2.intert_tensor._11 = (pow(rect2.getOBB().size.y, 2) + pow(rect2.getOBB().size.z, 2)) * rect2.mass * frac;

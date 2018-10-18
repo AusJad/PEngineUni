@@ -112,6 +112,11 @@ physmat4 Transpose(const physmat4& matrix) {
 	return result;
 }
 
+physvec3 Transpose(const physvec3& matrix) {
+	physvec3 result;
+	Transpose(matrix.asArray, result.asArray, 1, 3);
+	return result;
+}
 mat2 operator*(const mat2& matrix, float scalar) {
 	mat2 result;
 	for (int i = 0; i < 4; ++i) {
@@ -667,6 +672,14 @@ physvec3 MultiplyVector(const physvec3& vec, const physmat4& mat) {
 	result.x = vec.x * mat._11 + vec.y * mat._21 + vec.z * mat._31 + 0.0f * mat._41;
 	result.y = vec.x * mat._12 + vec.y * mat._22 + vec.z * mat._32 + 0.0f * mat._42;
 	result.z = vec.x * mat._13 + vec.y * mat._23 + vec.z * mat._33 + 0.0f * mat._43;
+	return result;
+}
+
+physvec3 MultiplyVector(const mat3 &mat, const physvec3& vec) {
+	physvec3 result;
+	result.x = vec.x * mat._11 + vec.y * mat._21 + vec.z * mat._31;
+	result.y = vec.x * mat._12 + vec.y * mat._22 + vec.z * mat._32;
+	result.z = vec.x * mat._13 + vec.y * mat._23 + vec.z * mat._33;
 	return result;
 }
 

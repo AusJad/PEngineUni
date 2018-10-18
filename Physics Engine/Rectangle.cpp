@@ -9,7 +9,7 @@ namespace phys {
 	}
 
 	void Rectangle::update(float time) {
-		const float dampening = 0.98f;
+		const float dampening = 0.99f;
 		physvec3 acceleration = forceaccum * getInvMass();
 		vel += acceleration * time;
 		vel *= dampening;

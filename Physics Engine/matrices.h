@@ -170,6 +170,7 @@ void Transpose(const float *srcMat, float *dstMat, int srcRows, int srcCols);
 mat2 Transpose(const mat2& matrix);
 mat3 Transpose(const mat3& matrix);
 physmat4 Transpose(const physmat4& matrix);
+physvec3 Transpose(const physvec3& matrix);
 
 mat2 operator*(const mat2& matrix, float scalar);
 mat3 operator*(const mat3& matrix, float scalar);
@@ -243,6 +244,7 @@ mat3 AxisAngle3x3(const physvec3& axis, float angle);
 physvec3 MultiplyPoint(const physvec3& vec, const physmat4& mat);
 physvec3 MultiplyVector(const physvec3& vec, const physmat4& mat);
 physvec3 MultiplyVector(const physvec3& vec, const mat3& mat);
+physvec3 MultiplyVector(const mat3& mat, const physvec3& vec);
 
 physmat4 Transform(const physvec3& scale, const physvec3& eulerRotation, const physvec3& translate);
 physmat4 Transform(const physvec3& scale, const physvec3& rotationAxis, float rotationAngle, const physvec3& translate);
