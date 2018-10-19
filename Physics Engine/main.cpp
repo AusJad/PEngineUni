@@ -72,51 +72,75 @@ void updateAngularImpulse(phys::Rectangle & r1, phys::Rectangle & r2, CollisionM
 
 }
 
-float magicEquation(physvec3 obj1LinearVelocity, physvec3 obj2LinearVelocity, physvec3 obj1AngularVelocity, physvec3 obj2AngularVelocity, float obj1Mass, float obj2Mass, physvec3 obj1R, physvec3 obj2R, physmat4 obj1InertiaTensor, physmat4 obj2InertiaTensor, physvec3 collisionVector)
+physvec3 magicEquation(physvec3 obj1LinearVelocity, physvec3 obj2LinearVelocity, physvec3 obj1AngularVelocity, physvec3 obj2AngularVelocity, float obj1Mass, float obj2Mass, physvec3 obj1R, physvec3 obj2R, physmat4 obj1InertiaTensor, physmat4 obj2InertiaTensor, physvec3 collisionVector)
 {
 	if ((1/obj1Mass) + (1/obj2Mass) == 0.0f) {
-		return 0;
+		return physvec3(0,0,0);
 	}
-	physvec3 bottomBit;
+	float bottomBit;
 	physvec3 relativeLinearVelocity;
 	relativeLinearVelocity.x = obj1LinearVelocity.x - obj2LinearVelocity.x;
 	relativeLinearVelocity.y = obj1LinearVelocity.y - obj2LinearVelocity.y;
 	relativeLinearVelocity.z = obj1LinearVelocity.z - obj2LinearVelocity.z;
-	physmat4 i1 = Inverse(obj1InertiaTensor);
-	physmat4 i2 = Inverse(obj2InertiaTensor);
-	bottomBit = (MultiplyVector(Transpose(Cross(obj1R, collisionVector)), i1)) * Cross(obj1R, collisionVector) + MultiplyVector(Transpose(Cross(obj2R, collisionVector)), i2) * Cross(obj2R, collisionVector);
-	
-	//inverse mass to every point on vec3
+	mat3 i1;
+	mat3 i2;
+	i1._11 = obj1InertiaTensor._11;
+	i1._12 = obj1InertiaTensor._12;
+	i1._13 = obj1InertiaTensor._13;
+
+	i1._21 = obj1InertiaTensor._21;
+	i1._22 = obj1InertiaTensor._22;
+	i1._23 = obj1InertiaTensor._23;
+
+	i1._31 = obj1InertiaTensor._31;
+	i1._32 = obj1InertiaTensor._32;
+	i1._33 = obj1InertiaTensor._33;
+
+
+	i2._11 = obj2InertiaTensor._11;
+	i2._12 = obj2InertiaTensor._12;
+	i2._13 = obj2InertiaTensor._13;
+
+	i2._21 = obj2InertiaTensor._21;
+	i2._22 = obj2InertiaTensor._22;
+	i2._23 = obj2InertiaTensor._23;
+
+	i2._31 = obj2InertiaTensor._31;
+	i2._32 = obj2InertiaTensor._32;
+	i2._33 = obj2InertiaTensor._33;
+
+	i1 = Inverse(i1);
+	i2 = Inverse(i2);
+
+	//inverse mass
 	float inverseMasses = (1 / obj1Mass) + (1 / obj2Mass);
+	bottomBit = Dot(Cross(obj1R, collisionVector), MultiplyVector(i1,Cross(obj1R, collisionVector))) + Dot(Cross(obj2R, collisionVector), MultiplyVector(i2, Cross(obj2R, collisionVector)));
+	bottomBit += inverseMasses;
 	float topBit = (-(1 + 0.5) * Dot(collisionVector, relativeLinearVelocity) + Dot(obj1AngularVelocity, Cross(obj1R, collisionVector)) - (Dot(obj2AngularVelocity, Cross(obj2R, collisionVector))));
 
-	bottomBit.x += inverseMasses;
-	bottomBit.y += inverseMasses;
-	bottomBit.z += inverseMasses;
-	topBit /= bottomBit.x;
-	topBit /= bottomBit.y;
-	topBit /= bottomBit.z;
-	topBit *= collisionVector.x;
-	topBit *= collisionVector.y;
-	topBit *= collisionVector.z;
+	float magic = topBit /= bottomBit; 
 
-	return topBit;
+	collisionVector.x *= magic;
+	collisionVector.y *= magic;
+	collisionVector.z *= magic;
+
+	return (collisionVector);
 }
 
-void updateLinearVelocity(phys::Rectangle & r1, phys::Rectangle & r2, float help)
+void updateLinearVelocity(phys::Rectangle & r1, phys::Rectangle & r2, physvec3 help)
 {
 
-	r1.vel.x += (help / r1.mass);
-	r1.vel.y += (help / r1.mass);
-	r1.vel.z += (help / r1.mass);
+	r1.vel.x += (help.x / r1.mass);
+	r1.vel.y += (help.y / r1.mass);
+	r1.vel.z += (help.z / r1.mass);
 
 
-	r2.vel.x -= (help / r2.mass);
-	r2.vel.y -= (help / r2.mass);
-	r2.vel.z -= (help / r2.mass);
+	r2.vel.x -= (help.x / r2.mass);
+	r2.vel.y -= (help.y / r2.mass);
+	r2.vel.z -= (help.z / r2.mass);
 }
 
-void updateAngularVelocity(phys::Rectangle & r1, phys::Rectangle & r2, float help, physvec3 collPt)
+void updateAngularVelocity(phys::Rectangle & r1, phys::Rectangle & r2, physvec3 help, physvec3 collPt)
 {
 	physvec3 normalVector = collPt - r1.getOBB().position;
 	mat3 i1;
@@ -152,16 +176,14 @@ void updateAngularVelocity(phys::Rectangle & r1, phys::Rectangle & r2, float hel
 
 
 	physvec3 r1stuff = MultiplyVector(i1, Cross(normalVector, collPt));
-	std::cout << "r1stuff: " << r1stuff.x << " y: " << r1stuff.y << " z: " << r1stuff.z << std::endl;
-	std::cout << "r1 angular stuff: " << r1.angularvel.x << " y: " << r1.angularvel.y << " z: " << r1.angularvel.z << std::endl;
-	r1.angularvel.x = r1.angularvel.x + help * r1stuff.x;
-	r1.angularvel.y = r1.angularvel.y + help * r1stuff.y;
-	r1.angularvel.z = r1.angularvel.z + help * r1stuff.z;
+	r1.angularvel.x = r1.angularvel.x + help.x * r1stuff.x;
+	r1.angularvel.y = r1.angularvel.y + help.y * r1stuff.y;
+	r1.angularvel.z = r1.angularvel.z + help.z * r1stuff.z;
 
 	physvec3 r2stuff = MultiplyVector(i2, Cross(normalVector, collPt));
-	r2.angularvel.x = r2.angularvel.x + help * r2stuff.x;
-	r2.angularvel.y = r2.angularvel.y + help * r2stuff.y;
-	r2.angularvel.z = r2.angularvel.z + help * r2stuff.z;
+	r2.angularvel.x = r2.angularvel.x - help.x * r2stuff.x;
+	r2.angularvel.y = r2.angularvel.y - help.y * r2stuff.y;
+	r2.angularvel.z = r2.angularvel.z - help.z * r2stuff.z;
 
 }
 
@@ -174,12 +196,11 @@ void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
 	physvec3 collpt;
 	physvec3 obj1R;
 	physvec3 obj2R;
-	float momentumChange;
+	physvec3 momentumChange;
 
 	if (OBBOBB(r1.getOBB(), r2.getOBB())) {
 		CollisionManifold coll = FindCollisionFeatures(r1.getOBB(), r2.getOBB());
 		if (coll.colliding) {
-			
 			if (coll.contacts.size() > 1)
 			{
 				for (int i = 0; i < coll.contacts.size() - 1; i++)
@@ -190,10 +211,13 @@ void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
 				collpt /= coll.contacts.size();
 			}
 			else
-				collpt = coll.contacts[0];
+			{
+				collpt += coll.contacts[0];
+				collpt /= coll.contacts.size();
+			}
 
 			obj1R = r1.getOBB().position + collpt;
-			obj2R = r2.getOBB().position - collpt;
+			obj2R = r2.getOBB().position + collpt;
 
 			momentumChange = magicEquation(r1.vel, r2.vel, r1.angularvel, r2.angularvel, r1.mass, r2.mass, obj1R, obj2R, r1.intert_tensor, r2.intert_tensor, collpt);
 			updateAngularVelocity(r1, r2, momentumChange, collpt);
