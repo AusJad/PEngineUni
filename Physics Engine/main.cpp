@@ -193,36 +193,26 @@ void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
 	r2.update(ttime);
 
 
-	physvec3 collpt;
 	physvec3 obj1R;
 	physvec3 obj2R;
 	physvec3 momentumChange;
+	physvec3 collPt;
 
 	if (OBBOBB(r1.getOBB(), r2.getOBB())) {
 		CollisionManifold coll = FindCollisionFeatures(r1.getOBB(), r2.getOBB());
 		if (coll.colliding) {
-			if (coll.contacts.size() > 1)
+			for (int i = 0; i < coll.contacts.size() - 1; i++)
 			{
-				for (int i = 0; i < coll.contacts.size() - 1; i++)
-				{
-					collpt += coll.contacts[i];
-				}
-
-				collpt /= coll.contacts.size();
+				collPt += coll.contacts[i];
 			}
-			else
-			{
-				collpt += coll.contacts[0];
-				collpt /= coll.contacts.size();
-			}
+			collPt /= coll.contacts.size();
 
-			obj1R = r1.getOBB().position + collpt;
-			obj2R = r2.getOBB().position + collpt;
+			obj1R = r1.getOBB().position + collPt;
+			obj2R = r2.getOBB().position - collPt;
 
-			momentumChange = magicEquation(r1.vel, r2.vel, r1.angularvel, r2.angularvel, r1.mass, r2.mass, obj1R, obj2R, r1.intert_tensor, r2.intert_tensor, collpt);
-			updateAngularVelocity(r1, r2, momentumChange, collpt);
+			momentumChange = magicEquation(r1.vel, r2.vel, r1.angularvel, r2.angularvel, r1.mass, r2.mass, obj1R, obj2R, r1.intert_tensor, r2.intert_tensor, coll.normal);
 			updateLinearVelocity(r1, r2, momentumChange);
-			
+			updateAngularVelocity(r1, r2, momentumChange, collPt);
 		
 		}
 
@@ -238,7 +228,7 @@ void init() {
 		rect2.COR = .5;
 
 		rect2.vel = physvec3(15, 0, 0);
-		rect.vel = physvec3(-15, 5, 0);
+		rect.vel = physvec3(-15, 0, 0);
 
 		float frac = 1 / 12;
 		rect2.intert_tensor._11 = (pow(rect2.getOBB().size.y, 2) + pow(rect2.getOBB().size.z, 2)) * rect2.mass * frac;
