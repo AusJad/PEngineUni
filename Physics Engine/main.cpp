@@ -72,6 +72,7 @@ void updateAngularImpulse(phys::Rectangle & r1, phys::Rectangle & r2, CollisionM
 
 }
 
+
 physvec3 magicEquation(physvec3 obj1LinearVelocity, physvec3 obj2LinearVelocity, physvec3 obj1AngularVelocity, physvec3 obj2AngularVelocity, float obj1Mass, float obj2Mass, physvec3 obj1R, physvec3 obj2R, physmat4 obj1InertiaTensor, physmat4 obj2InertiaTensor, physvec3 collisionVector)
 {
 	if ((1/obj1Mass) + (1/obj2Mass) == 0.0f) {
@@ -188,32 +189,38 @@ void updateAngularVelocity(phys::Rectangle & r1, phys::Rectangle & r2, physvec3 
 }
 
 
-void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
-	r1.update(ttime);
-	r2.update(ttime);
-
+physvec3 resolveCollision(phys::Rectangle r1, phys::Rectangle r2, CollisionManifold coll)
+{
 
 	physvec3 obj1R;
 	physvec3 obj2R;
 	physvec3 momentumChange;
 	physvec3 collPt;
 
+	for (int i = 0; i < coll.contacts.size() - 1; i++)
+	{
+		collPt += coll.contacts[i];
+	}
+	collPt /= coll.contacts.size();
+
+	obj1R = r1.getOBB().position + collPt;
+	obj2R = r2.getOBB().position - collPt;
+
+	momentumChange = magicEquation(r1.vel, r2.vel, r1.angularvel, r2.angularvel, r1.mass, r2.mass, obj1R, obj2R, r1.intert_tensor, r2.intert_tensor, coll.normal);
+	return momentumChange;
+}
+
+void physUpdate(phys::Rectangle & r1, phys::Rectangle & r2) {
+	r1.update(ttime);
+	r2.update(ttime);
+	physvec3 help;
+
 	if (OBBOBB(r1.getOBB(), r2.getOBB())) {
 		CollisionManifold coll = FindCollisionFeatures(r1.getOBB(), r2.getOBB());
 		if (coll.colliding) {
-			for (int i = 0; i < coll.contacts.size() - 1; i++)
-			{
-				collPt += coll.contacts[i];
-			}
-			collPt /= coll.contacts.size();
-
-			obj1R = r1.getOBB().position + collPt;
-			obj2R = r2.getOBB().position - collPt;
-
-			momentumChange = magicEquation(r1.vel, r2.vel, r1.angularvel, r2.angularvel, r1.mass, r2.mass, obj1R, obj2R, r1.intert_tensor, r2.intert_tensor, coll.normal);
-			updateLinearVelocity(r1, r2, momentumChange);
-			updateAngularVelocity(r1, r2, momentumChange, collPt);
-		
+			help = resolveCollision(r1, r2, coll);
+			updateLinearVelocity(r1, r2, help);
+			updateAngularVelocity(r1, r2, help, coll.contacts[0]);
 		}
 
 	}
@@ -227,7 +234,7 @@ void init() {
 		rect.COR = .5;
 		rect2.COR = .5;
 
-		rect2.vel = physvec3(15, 0, 0);
+		rect2.vel = physvec3(15, 5, 0);
 		rect.vel = physvec3(-15, 0, 0);
 
 		float frac = 1 / 12;
